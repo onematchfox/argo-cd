@@ -3028,6 +3028,36 @@
       }
     },
     "/api/v1/repocreds/{url}": {
+      "get": {
+        "tags": [
+          "RepoCredsService"
+        ],
+        "summary": "GetRepositoryCredentials returns the requested repository credential set by URL.",
+        "operationId": "RepoCredsService_GetRepositoryCredentials",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Repo URL for query",
+            "name": "url",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1alpha1RepoCreds"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        }
+      },
       "delete": {
         "tags": [
           "RepoCredsService"

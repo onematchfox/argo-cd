@@ -38,6 +38,11 @@ message RepoCredsUpdateRequest {
 // RepoCredsService implements CRUD actions for managing repository credentials config
 service RepoCredsService {
 
+	// GetRepositoryCredentials returns the requested repository credential set by URL.
+	rpc GetRepositoryCredentials(RepoCredsQuery) returns (github.com.argoproj.argo_cd.v2.pkg.apis.application.v1alpha1.RepoCreds) {
+		option (google.api.http).get = "/api/v1/repocreds/{url}";
+	}
+
 	// ListRepositoryCredentials gets a list of all configured repository credential sets
 	rpc ListRepositoryCredentials(RepoCredsQuery) returns (github.com.argoproj.argo_cd.v2.pkg.apis.application.v1alpha1.RepoCredsList) {
 		option (google.api.http).get = "/api/v1/repocreds";

@@ -6,6 +6,7 @@ import (
 	"github.com/argoproj/argo-cd/v2/util/argo"
 
 	"context"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -39,6 +40,45 @@ func NewServer(
 		enf:           enf,
 		settings:      settings,
 	}
+}
+
+var (
+	errPermissionDenied = status.Error(codes.PermissionDenied, "permission denied")
+)
+
+// GetRepositoryCredentials returns the requested repository credential set by URL.
+func (s *Server) GetRepositoryCredentials(ctx context.Context, q *repocredspkg.RepoCredsQuery) (*appsv1.RepoCreds, error) {
+	if q == nil || q.Url == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "missing payload in request")
+	}
+
+	if err := s.enf.EnforceErr(ctx.Value("claims"), rbacpolicy.ResourceRepositories, rbacpolicy.ActionGet, q.Url); err != nil {
+		return nil, err
+	}
+
+	rc, err := s.db.GetRepositoryCredentials(ctx, q.Url)
+	if err != nil {
+		return nil, errPermissionDenied
+	}
+
+	if rc == nil {
+		return nil, status.Errorf(codes.NotFound, "repository credentials '%s' not found", q.Url)
+	}
+
+	// remove secrets
+	item := &appsv1.RepoCreds{
+		URL:                        rc.URL,
+		Username:                   rc.Username,
+		GithubAppId:                rc.GithubAppId,
+		GithubAppInstallationId:    rc.GithubAppInstallationId,
+		GitHubAppEnterpriseBaseURL: rc.GitHubAppEnterpriseBaseURL,
+		Proxy:                      rc.Proxy,
+		EnableOCI:                  rc.EnableOCI,
+		Type:                       rc.Type,
+		ForceHttpBasicAuth:         rc.ForceHttpBasicAuth,
+	}
+
+	return item, nil
 }
 
 // ListRepositoryCredentials returns a list of all configured repository credential sets
