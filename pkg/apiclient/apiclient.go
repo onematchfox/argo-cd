@@ -529,6 +529,12 @@ func (c *client) newConn() (*grpc.ClientConn, io.Closer, error) {
 	dialOpts = append(dialOpts, grpc.WithUnaryInterceptor(grpc_util.OTELUnaryClientInterceptor()))
 	dialOpts = append(dialOpts, grpc.WithStreamInterceptor(grpc_util.OTELStreamClientInterceptor()))
 
+	// Workaround for https://issuetracker.google.com/issues/294510336
+	if parts := strings.Split(serverAddr, ":"); len(parts) > 1 {
+		// Drop port from authority header
+		dialOpts = append(dialOpts, grpc.WithAuthority(parts[0]))
+	}
+
 	ctx := context.Background()
 
 	headers, err := parseHeaders(c.Headers)
